@@ -1,115 +1,46 @@
 import { useState } from 'react';
-import {
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-export default function HomeScreen() {
-  const [firstNumber, setFirstNumber] = useState('');
-  const [secondNumber, setSecondNumber] = useState('');
-  const [result, setResult] = useState('');
-  const [message, setMessage] = useState('');
+type CounterProps = {
+  increment?: number;
+};
 
-  const calculate = (operator: string) => {
-    setMessage('');
-    setResult('');
+export default function CounterApp({ increment = 1 }: CounterProps) {
+  const [count, setCount] = useState(0);
 
-    if (firstNumber.trim() === '' || secondNumber.trim() === '') {
-      setMessage('Please enter both numbers.');
-      return;
+  const increase = () => {
+    setCount(count + increment);
+  };
+
+  const decrease = () => {
+    if (count > 0) {
+      setCount(Math.max(0, count - increment));
     }
+  };
 
-    const num1 = Number(firstNumber);
-    const num2 = Number(secondNumber);
-
-    if (isNaN(num1) || isNaN(num2)) {
-      setMessage('Please enter valid numbers.');
-      return;
-    }
-
-    if (operator === '/' && num2 === 0) {
-      setMessage('Cannot divide by zero.');
-      return;
-    }
-
-    let answer = 0;
-
-    if (operator === '+') {
-      answer = num1 + num2;
-    } else if (operator === '-') {
-      answer = num1 - num2;
-    } else if (operator === '*') {
-      answer = num1 * num2;
-    } else if (operator === '/') {
-      answer = num1 / num2;
-    }
-
-    setResult(answer.toString());
+  const reset = () => {
+    setCount(0);
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Simple Calculator</Text>
+      <Text style={styles.title}>Counter App</Text>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Enter first number"
-        keyboardType="numeric"
-        value={firstNumber}
-        onChangeText={setFirstNumber}
-      />
-
-      <TextInput
-        style={styles.input}
-        placeholder="Enter second number"
-        keyboardType="numeric"
-        value={secondNumber}
-        onChangeText={setSecondNumber}
-      />
+      <Text style={styles.counter}>{count}</Text>
 
       <View style={styles.buttonRow}>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => calculate('+')}
-        >
-          <Text style={styles.buttonText}>+</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => calculate('-')}
-        >
+        <Pressable style={styles.button} onPress={decrease}>
           <Text style={styles.buttonText}>−</Text>
-        </TouchableOpacity>
+        </Pressable>
 
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => calculate('*')}
-        >
-          <Text style={styles.buttonText}>×</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => calculate('/')}
-        >
-          <Text style={styles.buttonText}>÷</Text>
-        </TouchableOpacity>
+        <Pressable style={styles.button} onPress={increase}>
+          <Text style={styles.buttonText}>+</Text>
+        </Pressable>
       </View>
 
-      {message !== '' && (
-        <Text style={styles.message}>{message}</Text>
-      )}
-
-      {result !== '' && (
-        <View style={styles.resultBox}>
-          <Text style={styles.resultLabel}>Result</Text>
-          <Text style={styles.result}>{result}</Text>
-        </View>
-      )}
+      <Pressable style={styles.resetButton} onPress={reset}>
+        <Text style={styles.resetText}>Reset</Text>
+      </Pressable>
     </View>
   );
 }
@@ -117,72 +48,54 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
-    padding: 25,
     justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f5f5f5',
+    padding: 20,
   },
 
   title: {
-    fontSize: 30,
+    fontSize: 28,
     fontWeight: 'bold',
-    textAlign: 'center',
     marginBottom: 30,
   },
 
-  input: {
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 10,
-    padding: 15,
-    fontSize: 18,
-    marginBottom: 15,
+  counter: {
+    fontSize: 60,
+    fontWeight: 'bold',
+    marginBottom: 30,
   },
 
   buttonRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 10,
+    gap: 20,
   },
 
   button: {
-    backgroundColor: '#333',
     width: 70,
-    height: 55,
-    borderRadius: 10,
+    height: 60,
+    backgroundColor: '#222',
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
   },
 
   buttonText: {
-    color: '#fff',
-    fontSize: 25,
-    fontWeight: 'bold',
-  },
-
-  message: {
-    color: '#d32f2f',
-    textAlign: 'center',
-    fontSize: 16,
-    marginTop: 20,
-  },
-
-  resultBox: {
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    padding: 20,
-    marginTop: 25,
-    alignItems: 'center',
-  },
-
-  resultLabel: {
-    fontSize: 16,
-    color: '#666',
-  },
-
-  result: {
+    color: 'white',
     fontSize: 32,
     fontWeight: 'bold',
-    marginTop: 5,
+  },
+
+  resetButton: {
+    marginTop: 20,
+    paddingVertical: 12,
+    paddingHorizontal: 30,
+    backgroundColor: '#ddd',
+    borderRadius: 10,
+  },
+
+  resetText: {
+    fontSize: 18,
+    fontWeight: '600',
   },
 });
