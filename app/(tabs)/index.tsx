@@ -1,612 +1,380 @@
-import { useState } from "react";
+import React from 'react';
 import {
-  SafeAreaView,
+  Pressable,
   ScrollView,
-  StatusBar,
   StyleSheet,
   Text,
-  TextInput,
-  TouchableOpacity,
+  useWindowDimensions,
   View,
-} from "react-native";
+} from 'react-native';
 
-export default function App() {
-  const [isEditing, setIsEditing] = useState(true);
 
-  // Empty profile — user provides all information
-  const [profile, setProfile] = useState({
-    fullName: "",
-    program: "",
-    biography: "",
-    email: "",
-    phone: "",
-  });
-
-  const [form, setForm] = useState({
-    fullName: "",
-    program: "",
-    biography: "",
-    email: "",
-    phone: "",
-  });
-
-  const [errors, setErrors] = useState({});
-  const [message, setMessage] = useState("");
-
-  const handleChange = (field, value) => {
-    setForm((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-
-    // Clear the error when the user starts typing
-    if (errors[field]) {
-      setErrors((prev) => ({
-        ...prev,
-        [field]: "",
-      }));
-    }
-
-    // Clear feedback message while editing
-    setMessage("");
-  };
-
-  const validate = () => {
-    const newErrors = {};
-
-    // Full Name validation
-    if (!form.fullName.trim()) {
-      newErrors.fullName = "Full name is required.";
-    }
-
-    // Program validation
-    if (!form.program.trim()) {
-      newErrors.program = "Program is required.";
-    }
-
-    // Email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    if (!form.email.trim()) {
-      newErrors.email = "Email is required.";
-    } else if (!emailRegex.test(form.email.trim())) {
-      newErrors.email = "Please enter a valid email address.";
-    }
-
-    setErrors(newErrors);
-
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSave = () => {
-    if (!validate()) {
-      setMessage("Please complete the required fields.");
-      return;
-    }
-
-    const cleanedProfile = {
-      fullName: form.fullName.trim(),
-      program: form.program.trim(),
-      biography: form.biography.trim(),
-      email: form.email.trim(),
-      phone: form.phone.trim(),
-    };
-
-    setProfile(cleanedProfile);
-    setForm(cleanedProfile);
-    setIsEditing(false);
-    setMessage("✓ Profile saved successfully!");
-  };
-
-  const handleEdit = () => {
-    setForm(profile);
-    setErrors({});
-    setMessage("");
-    setIsEditing(true);
-  };
-
-  const handleCancel = () => {
-    setForm(profile);
-    setErrors({});
-    setMessage("");
-    setIsEditing(false);
-  };
-
+// =========================
+// REUSABLE METRIC CARD
+// =========================
+function MetricCard({
+  title,
+  value,
+  description,
+}: {
+  title: string;
+  value: string;
+  description: string;
+}) {
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F5F7FB" />
-
-      <ScrollView
-        contentContainerStyle={styles.container}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.title}>Personal Profile</Text>
-          <Text style={styles.subtitle}>
-            Enter and manage your personal information
-          </Text>
-        </View>
-
-        {/* Profile Image Placeholder */}
-        <View style={styles.imageContainer}>
-          <View style={styles.imagePlaceholder}>
-            <Text style={styles.imagePlaceholderText}>PHOTO</Text>
-          </View>
-
-          <Text style={styles.imageHint}>Profile Image</Text>
-        </View>
-
-        {/* Profile Card */}
-        <View style={styles.card}>
-          {/* Full Name */}
-          <View style={styles.fieldContainer}>
-            <Text style={styles.label}>Full Name *</Text>
-
-            {isEditing ? (
-              <>
-                <TextInput
-                  style={[
-                    styles.input,
-                    errors.fullName && styles.inputError,
-                  ]}
-                  value={form.fullName}
-                  onChangeText={(value) =>
-                    handleChange("fullName", value)
-                  }
-                  placeholder="Enter your full name"
-                  placeholderTextColor="#9CA3AF"
-                  autoCapitalize="words"
-                />
-
-                {errors.fullName && (
-                  <Text style={styles.errorText}>
-                    {errors.fullName}
-                  </Text>
-                )}
-              </>
-            ) : (
-              <Text style={styles.value}>{profile.fullName}</Text>
-            )}
-          </View>
-
-          {/* Program */}
-          <View style={styles.fieldContainer}>
-            <Text style={styles.label}>Program *</Text>
-
-            {isEditing ? (
-              <>
-                <TextInput
-                  style={[
-                    styles.input,
-                    errors.program && styles.inputError,
-                  ]}
-                  value={form.program}
-                  onChangeText={(value) =>
-                    handleChange("program", value)
-                  }
-                  placeholder="Enter your program"
-                  placeholderTextColor="#9CA3AF"
-                />
-
-                {errors.program && (
-                  <Text style={styles.errorText}>
-                    {errors.program}
-                  </Text>
-                )}
-              </>
-            ) : (
-              <Text style={styles.value}>{profile.program}</Text>
-            )}
-          </View>
-
-          {/* Biography */}
-          <View style={styles.fieldContainer}>
-            <Text style={styles.label}>Short Biography</Text>
-
-            {isEditing ? (
-              <TextInput
-                style={[styles.input, styles.bioInput]}
-                value={form.biography}
-                onChangeText={(value) =>
-                  handleChange("biography", value)
-                }
-                placeholder="Write a short biography about yourself"
-                placeholderTextColor="#9CA3AF"
-                multiline
-                textAlignVertical="top"
-              />
-            ) : (
-              <Text style={styles.bioText}>
-                {profile.biography || "No biography provided."}
-              </Text>
-            )}
-          </View>
-
-          {/* Contact Information */}
-          <View style={styles.contactSection}>
-            <Text style={styles.sectionTitle}>
-              Contact Information
-            </Text>
-
-            {/* Email */}
-            <View style={styles.fieldContainer}>
-              <Text style={styles.label}>Email *</Text>
-
-              {isEditing ? (
-                <>
-                  <TextInput
-                    style={[
-                      styles.input,
-                      errors.email && styles.inputError,
-                    ]}
-                    value={form.email}
-                    onChangeText={(value) =>
-                      handleChange("email", value)
-                    }
-                    placeholder="Enter your email"
-                    placeholderTextColor="#9CA3AF"
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                  />
-
-                  {errors.email && (
-                    <Text style={styles.errorText}>
-                      {errors.email}
-                    </Text>
-                  )}
-                </>
-              ) : (
-                <Text style={styles.value}>{profile.email}</Text>
-              )}
-            </View>
-
-            {/* Phone */}
-            <View style={styles.fieldContainer}>
-              <Text style={styles.label}>Phone Number</Text>
-
-              {isEditing ? (
-                <TextInput
-                  style={styles.input}
-                  value={form.phone}
-                  onChangeText={(value) =>
-                    handleChange("phone", value)
-                  }
-                  placeholder="Enter your phone number"
-                  placeholderTextColor="#9CA3AF"
-                  keyboardType="phone-pad"
-                />
-              ) : (
-                <Text style={styles.value}>
-                  {profile.phone || "No phone number provided."}
-                </Text>
-              )}
-            </View>
-          </View>
-
-          {/* Buttons */}
-          {isEditing ? (
-            <View style={styles.buttonRow}>
-              {profile.fullName !== "" && (
-                <TouchableOpacity
-                  style={styles.cancelButton}
-                  onPress={handleCancel}
-                  activeOpacity={0.8}
-                >
-                  <Text style={styles.cancelButtonText}>
-                    Cancel
-                  </Text>
-                </TouchableOpacity>
-              )}
-
-              <TouchableOpacity
-                style={[
-                  styles.saveButton,
-                  profile.fullName === "" && styles.fullButton,
-                ]}
-                onPress={handleSave}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.saveButtonText}>
-                  Save Profile
-                </Text>
-              </TouchableOpacity>
-            </View>
-          ) : (
-            <TouchableOpacity
-              style={styles.editButton}
-              onPress={handleEdit}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.editButtonText}>
-                Edit Profile
-              </Text>
-            </TouchableOpacity>
-          )}
-        </View>
-
-        {/* Feedback */}
-        {message !== "" && (
-          <View
-            style={[
-              styles.messageBox,
-              message.startsWith("✓")
-                ? styles.successBox
-                : styles.warningBox,
-            ]}
-          >
-            <Text
-              style={[
-                styles.messageText,
-                message.startsWith("✓")
-                  ? styles.successText
-                  : styles.warningText,
-              ]}
-            >
-              {message}
-            </Text>
-          </View>
-        )}
-
-        {/* Saved Result */}
-        {!isEditing && profile.fullName !== "" && (
-          <View style={styles.savedResult}>
-            <Text style={styles.savedTitle}>
-              ✓ Saved Profile
-            </Text>
-
-            <Text style={styles.savedText}>
-              Your information has been successfully saved
-              and is displayed above.
-            </Text>
-          </View>
-        )}
-      </ScrollView>
-    </SafeAreaView>
+    <View style={styles.metricCard}>
+      <Text style={styles.metricTitle}>{title}</Text>
+      <Text style={styles.metricValue}>{value}</Text>
+      <Text style={styles.metricDescription}>{description}</Text>
+    </View>
   );
 }
 
+
+// =========================
+// REUSABLE QUICK ACTION
+// =========================
+function QuickAction({
+  icon,
+  title,
+}: {
+  icon: string;
+  title: string;
+}) {
+  return (
+    <Pressable style={styles.actionButton}>
+      <Text style={styles.actionIcon}>{icon}</Text>
+      <Text style={styles.actionText}>{title}</Text>
+    </Pressable>
+  );
+}
+
+
+// =========================
+// MAIN DASHBOARD
+// =========================
+export default function App() {
+  const { width } = useWindowDimensions();
+
+  // Changes card width depending on screen size
+  const isWideScreen = width >= 600;
+
+  return (
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.content}
+    >
+
+      {/* HEADER */}
+      <View style={styles.header}>
+        <View>
+          <Text style={styles.title}>Dashboard</Text>
+          <Text style={styles.subtitle}>Welcome back!</Text>
+        </View>
+
+        <Pressable style={styles.profileButton}>
+          <Text style={styles.profileText}>👤</Text>
+        </Pressable>
+      </View>
+
+
+      {/* METRIC CARDS */}
+      <Text style={styles.sectionTitle}>Overview</Text>
+
+      <View style={styles.cardContainer}>
+
+        <View
+          style={[
+            styles.cardWrapper,
+            { width: isWideScreen ? '31%' : '100%' },
+          ]}
+        >
+          <MetricCard
+            title="Balance"
+            value="₱12,500"
+            description="Available balance"
+          />
+        </View>
+
+        <View
+          style={[
+            styles.cardWrapper,
+            { width: isWideScreen ? '31%' : '100%' },
+          ]}
+        >
+          <MetricCard
+            title="Income"
+            value="₱8,200"
+            description="This month"
+          />
+        </View>
+
+        <View
+          style={[
+            styles.cardWrapper,
+            { width: isWideScreen ? '31%' : '100%' },
+          ]}
+        >
+          <MetricCard
+            title="Expenses"
+            value="₱4,350"
+            description="This month"
+          />
+        </View>
+
+      </View>
+
+
+      {/* QUICK ACTIONS */}
+      <Text style={styles.sectionTitle}>Quick Actions</Text>
+
+      <View style={styles.actionsContainer}>
+        <QuickAction icon="＋" title="Add" />
+        <QuickAction icon="↗" title="Send" />
+        <QuickAction icon="₱" title="Pay" />
+      </View>
+
+
+      {/* RECENT ACTIVITY */}
+      <Text style={styles.sectionTitle}>Recent Activity</Text>
+
+      <View style={styles.activityContainer}>
+
+        <View style={styles.activityItem}>
+          <View style={styles.activityIcon}>
+            <Text>🛒</Text>
+          </View>
+
+          <View style={styles.activityInfo}>
+            <Text style={styles.activityTitle}>Grocery</Text>
+            <Text style={styles.activityDate}>Today, 10:30 AM</Text>
+          </View>
+
+          <Text style={styles.expense}>-₱500</Text>
+        </View>
+
+
+        <View style={styles.activityItem}>
+          <View style={styles.activityIcon}>
+            <Text>☕</Text>
+          </View>
+
+          <View style={styles.activityInfo}>
+            <Text style={styles.activityTitle}>Coffee</Text>
+            <Text style={styles.activityDate}>Today, 8:15 AM</Text>
+          </View>
+
+          <Text style={styles.expense}>-₱120</Text>
+        </View>
+
+
+        <View style={styles.activityItem}>
+          <View style={styles.activityIcon}>
+            <Text>💰</Text>
+          </View>
+
+          <View style={styles.activityInfo}>
+            <Text style={styles.activityTitle}>Salary</Text>
+            <Text style={styles.activityDate}>September 10</Text>
+          </View>
+
+          <Text style={styles.income}>+₱8,000</Text>
+        </View>
+
+      </View>
+
+    </ScrollView>
+  );
+}
+
+
+// =========================
+// STYLES
+// =========================
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: "#F5F7FB",
-  },
 
   container: {
+    flex: 1,
+    backgroundColor: '#F5F7FA',
+  },
+
+  content: {
     padding: 20,
     paddingBottom: 40,
   },
 
+
+  // HEADER
   header: {
-    marginBottom: 20,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 25,
   },
 
   title: {
     fontSize: 28,
-    fontWeight: "700",
-    color: "#111827",
+    fontWeight: '700',
+    color: '#1F2937',
   },
 
   subtitle: {
     fontSize: 14,
-    color: "#6B7280",
-    marginTop: 5,
+    color: '#6B7280',
+    marginTop: 4,
   },
 
-  imageContainer: {
-    alignItems: "center",
-    marginBottom: 20,
+  profileButton: {
+    width: 45,
+    height: 45,
+    borderRadius: 23,
+    backgroundColor: '#E5E7EB',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 
-  imagePlaceholder: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: "#E5E7EB",
-    borderWidth: 2,
-    borderColor: "#D1D5DB",
-    alignItems: "center",
-    justifyContent: "center",
+  profileText: {
+    fontSize: 22,
   },
 
-  imagePlaceholderText: {
-    color: "#6B7280",
-    fontSize: 16,
-    fontWeight: "700",
+
+  // SECTION TITLES
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#1F2937',
+    marginBottom: 12,
+    marginTop: 10,
   },
 
-  imageHint: {
-    marginTop: 8,
-    fontSize: 13,
-    color: "#6B7280",
+
+  // METRIC CARDS
+  cardContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    marginBottom: 15,
   },
 
-  card: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 18,
-    padding: 20,
+  cardWrapper: {
+    marginBottom: 15,
+  },
 
-    shadowColor: "#000",
+  metricCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 15,
+    padding: 18,
+    minHeight: 130,
+
+    // Shadow for iOS
     shadowOffset: {
       width: 0,
-      height: 3,
+      height: 2,
     },
     shadowOpacity: 0.08,
-    shadowRadius: 8,
+    shadowRadius: 5,
+
+    // Shadow for Android
     elevation: 3,
   },
 
-  fieldContainer: {
-    marginBottom: 20,
-  },
-
-  label: {
+  metricTitle: {
     fontSize: 14,
-    fontWeight: "600",
-    color: "#374151",
+    color: '#6B7280',
     marginBottom: 8,
   },
 
-  value: {
-    fontSize: 16,
-    color: "#111827",
-    fontWeight: "500",
+  metricValue: {
+    fontSize: 25,
+    fontWeight: '700',
+    color: '#111827',
   },
 
-  input: {
-    borderWidth: 1,
-    borderColor: "#D1D5DB",
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 16,
-    color: "#111827",
-    backgroundColor: "#FAFAFA",
-  },
-
-  inputError: {
-    borderColor: "#EF4444",
-    backgroundColor: "#FFF7F7",
-  },
-
-  bioInput: {
-    minHeight: 100,
-  },
-
-  bioText: {
-    fontSize: 15,
-    lineHeight: 22,
-    color: "#4B5563",
-  },
-
-  errorText: {
-    color: "#EF4444",
+  metricDescription: {
     fontSize: 12,
-    marginTop: 5,
+    color: '#9CA3AF',
+    marginTop: 6,
   },
 
-  contactSection: {
-    borderTopWidth: 1,
-    borderTopColor: "#E5E7EB",
-    paddingTop: 18,
+
+  // QUICK ACTIONS
+  actionsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 15,
+  },
+
+  actionButton: {
+    backgroundColor: '#FFFFFF',
+    width: '31%',
+    minHeight: 80,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 2,
+  },
+
+  actionIcon: {
+    fontSize: 22,
     marginBottom: 5,
   },
 
-  sectionTitle: {
-    fontSize: 17,
-    fontWeight: "700",
-    color: "#111827",
-    marginBottom: 14,
-  },
-
-  buttonRow: {
-    flexDirection: "row",
-    marginTop: 5,
-  },
-
-  cancelButton: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: "#D1D5DB",
-    borderRadius: 10,
-    paddingVertical: 14,
-    alignItems: "center",
-    marginRight: 5,
-  },
-
-  cancelButtonText: {
-    color: "#374151",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-
-  saveButton: {
-    flex: 1,
-    backgroundColor: "#2563EB",
-    borderRadius: 10,
-    paddingVertical: 14,
-    alignItems: "center",
-    marginLeft: 5,
-  },
-
-  fullButton: {
-    flex: 1,
-    marginLeft: 0,
-  },
-
-  saveButtonText: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "700",
-  },
-
-  editButton: {
-    backgroundColor: "#2563EB",
-    borderRadius: 10,
-    paddingVertical: 14,
-    alignItems: "center",
-    marginTop: 5,
-  },
-
-  editButtonText: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "700",
-  },
-
-  messageBox: {
-    marginTop: 15,
-    padding: 14,
-    borderRadius: 10,
-  },
-
-  successBox: {
-    backgroundColor: "#DCFCE7",
-    borderWidth: 1,
-    borderColor: "#86EFAC",
-  },
-
-  warningBox: {
-    backgroundColor: "#FEF3C7",
-    borderWidth: 1,
-    borderColor: "#FCD34D",
-  },
-
-  messageText: {
-    fontSize: 14,
-    fontWeight: "600",
-    textAlign: "center",
-  },
-
-  successText: {
-    color: "#166534",
-  },
-
-  warningText: {
-    color: "#92400E",
-  },
-
-  savedResult: {
-    marginTop: 15,
-    padding: 16,
-    backgroundColor: "#EFF6FF",
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: "#BFDBFE",
-  },
-
-  savedTitle: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: "#1D4ED8",
-    marginBottom: 4,
-  },
-
-  savedText: {
+  actionText: {
     fontSize: 13,
-    color: "#3B82F6",
-    lineHeight: 19,
+    fontWeight: '500',
+    color: '#374151',
   },
+
+
+  // RECENT ACTIVITY
+  activityContainer: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 15,
+    paddingHorizontal: 15,
+  },
+
+  activityItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
+  },
+
+  activityIcon: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: '#F3F4F6',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  activityInfo: {
+    flex: 1,
+    marginLeft: 12,
+  },
+
+  activityTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#1F2937',
+  },
+
+  activityDate: {
+    fontSize: 12,
+    color: '#9CA3AF',
+    marginTop: 3,
+  },
+
+  expense: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+
+  income: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+
 });
