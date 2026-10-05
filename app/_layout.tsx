@@ -1,13 +1,12 @@
 import { AuthProvider } from '@/context/AuthContext';
 import { useAuth } from '@/hooks/useAuth';
-import { Redirect, Stack, useSegments } from 'expo-router';
+import { Stack } from 'expo-router';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
 function RootNavigator() {
   const { token, authLoading } = useAuth();
-  const segments = useSegments();
 
-  // TODO EXAM: Check authentication state and wait for session restoration.
+  // Wait for session restoration before deciding which screens are available.
   if (authLoading) {
     return (
       <View style={styles.loading}>
@@ -16,26 +15,18 @@ function RootNavigator() {
     );
   }
 
-  const firstSegment = segments[0];
-
-  const isSignIn = firstSegment === 'sign-in';
-  const isProtectedRoute =
-    firstSegment === '(app)' || firstSegment === 'student';
-
-  // TODO EXAM: Protect (app) AND student/[id]; redirect unauthenticated users to /sign-in.
-  if (!token && isProtectedRoute && !isSignIn) {
-    return <Redirect href="/sign-in" />;
-  }
-
-  if (token && isSignIn) {
-    return <Redirect href="/(app)" />;
-  }
-
+  // (app) and student/[id] are only reachable with a token; sign-in only without one.
+  // The navigator switches automatically when the token changes, so no manual redirects.
   return (
     <Stack screenOptions={{ headerTintColor: '#17324d' }}>
-      <Stack.Screen name="sign-in" options={{ title: 'Sign In' }} />
-      <Stack.Screen name="(app)" options={{ headerShown: false }} />
-      <Stack.Screen name="student/[id]" options={{ title: 'Student Details' }} />
+      <Stack.Protected guard={!!token}>
+        <Stack.Screen name="(app)" options={{ headerShown: false }} />
+        <Stack.Screen name="student/[id]" options={{ title: 'Student Details' }} />
+      </Stack.Protected>
+
+      <Stack.Protected guard={!token}>
+        <Stack.Screen name="sign-in" options={{ title: 'Sign In' }} />
+      </Stack.Protected>
     </Stack>
   );
 }
