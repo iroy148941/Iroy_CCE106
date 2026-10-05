@@ -1,21 +1,46 @@
-/* eslint-disable @typescript-eslint/no-unused-vars -- Setters are reserved for the login exercise. */
+import { useAuth } from '@/hooks/useAuth';
+import { apiFetch } from '@/services/mockApi';
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
 export default function SignInScreen() {
+  const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   const handleLogin = async () => {
-    // TODO EXAM: 1. Validate email and password.
-    // TODO EXAM: 2. Set loading and clear previous errors.
-    // TODO EXAM: 3. POST to /login using fetch() and async/await.
-    // TODO EXAM: 4. Check response.ok and parse the returned JSON.
-    // TODO EXAM: 5. Pass the returned access token and user to the context login().
-    // TODO EXAM: 6. Navigate using router.replace() after successful authentication.
-    // TODO EXAM: 7. Handle login errors and stop loading in finally.
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail || !password) {
+      setError('Please enter your email and password.');
+      return;
+    }
+    if (!/^\S+@\S+\.\S+$/.test(trimmedEmail)) {
+      setError('Please enter a valid email address.');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+    try {
+      const response = await apiFetch('/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: trimmedEmail, password }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data?.message || 'Login failed. Please try again.');
+      }
+      // Saves the token and user. The root layout then opens the dashboard
+      // automatically, so no router.replace() is needed here.
+      await login(data.accessToken, data.user);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Something went wrong. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -32,11 +57,12 @@ export default function SignInScreen() {
           {loading && <ActivityIndicator color="#245bb2" accessibilityLabel="Signing in" />}
           {error ? <Text style={styles.error}>{error}</Text> : null}
         </View>
+        <Text style={styles.note}>Test account: student@example.com / password123</Text>
+      </View>
         <Pressable accessibilityRole="button" style={styles.button} onPress={handleLogin} disabled={loading}>
           <Text style={styles.buttonText}>{loading ? 'Signing in…' : 'Login'}</Text>
         </Pressable>
-        <Text style={styles.note}>Exam starter: login is not implemented yet.</Text>
-      </View>
+
     </ScrollView>
   );
 }
